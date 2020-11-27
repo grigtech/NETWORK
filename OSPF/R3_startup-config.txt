@@ -1,0 +1,129 @@
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R3
+!
+!
+!
+enable password admin
+!
+!
+ip dhcp excluded-address 192.168.20.1 192.168.20.10
+!
+ip dhcp pool CLIENTS
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.1
+ dns-server 192.168.20.10
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+username admin password 0 admin
+!
+!
+license udi pid CISCO2911/K9 sn FTX1524SL18-
+license boot module c2900 technology-package securityk9
+!
+!
+!
+crypto isakmp policy 10
+ encr aes 256
+ authentication pre-share
+ group 5
+!
+crypto isakmp key secretkey address 200.200.200.1
+!
+!
+!
+crypto ipsec transform-set R3-R1 esp-aes 256 esp-sha-hmac
+!
+crypto map IPSEC-MAP 10 ipsec-isakmp 
+ set peer 200.200.200.1
+ set pfs group5
+ set security-association lifetime seconds 86400
+ set transform-set R3-R1 
+ match address 100
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name R3
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 3.3.3.3 255.255.255.255
+!
+interface GigabitEthernet0/0
+ ip address 200.200.210.2 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ ip address 200.200.220.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/2
+ ip address 192.168.20.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ log-adjacency-changes
+ passive-interface GigabitEthernet0/2
+ network 200.200.210.0 0.0.0.255 area 0
+ network 200.200.220.0 0.0.0.255 area 0
+ network 192.168.20.0 0.0.0.255 area 0
+ network 3.3.3.3 0.0.0.0 area 0
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+access-list 100 permit ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 15 0
+ logging synchronous
+ login local
+!
+line aux 0
+!
+line vty 0 4
+ exec-timeout 15 0
+ login local
+ transport input ssh
+line vty 5 15
+ exec-timeout 15 0
+ login local
+ transport input ssh
+!
+!
+!
+end
+
